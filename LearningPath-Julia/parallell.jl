@@ -1,29 +1,24 @@
-function count_heads(n)
-    c::Int = 0
-    for i = 1:n
-        c += rand(Bool)
-    end
-    c
-end
-
-
 using Distributed
-#basepath = "/mnt/rOjterQsync/Programmering/"
-#thispath = pwd()
-#cd(thispath)
+basepath = "/home/dreuter/Github/julia-paths"
+thispath = "/LearningPath-Julia/"
+fullpath = string(basepath,thispath)
+cd(fullpath)
+@everywhere include(string("/home/dreuter/Github/julia-paths/LearningPath-Julia/","Counter.jl"))
 
-n = Int(1e8)
-include_string(Main, "$(read("count_heads.jl", String))", "count_heads.jl")
+n = Int(1e9)
 
 function parallel_map(n)
-    a = @spawn count_heads(n);
-    b = @spawn count_heads(n);
+    a = @spawn Counter.count_heads(n);
+    b = @spawn Counter.count_heads(n);
     return fetch(a) + fetch(b)
 end
 
+## Compare with and without parallell workers
+
 @time parallel_map(n)
 
-@time count_heads(n) + count_heads(n)
+@time Counter.count_heads(n) + Counter.count_heads(n)
+
 
 @time nheads1 = @distributed (+) for i = 1:200000000; Int(rand(Bool)); end
 
@@ -37,6 +32,9 @@ end
 a
 
 Threads.nthreads()
+
+# Distribute workers within for loop (Experimental only!)
+
 n = Int(1e8)
 a = zeros(n);
 

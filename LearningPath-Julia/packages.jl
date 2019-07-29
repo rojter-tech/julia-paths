@@ -33,7 +33,7 @@ Pkg.add("Revise")
 Pkg.add("StatsBase")
 Pkg.add("SymEngine")
 Pkg.add("TaylorSeries")
-#Pkg.add("TensorFlow") # Does not work on Windows
+Pkg.add("TensorFlow") # Does not work on Windows
 Pkg.add("Winston")
 Pkg.add("XGrad")
 Pkg.add("Random")
