@@ -14,34 +14,44 @@ function parallel_map(n)
 end
 
 ## Compare with and without parallell workers
-
 @time parallel_map(n)
 
 @time Counter.count_heads(n) + Counter.count_heads(n)
 
+## Distributed package
+using Distributed
+n = Int(1e8)
 
-@time nheads1 = @distributed (+) for i = 1:200000000; Int(rand(Bool)); end
+@time nheads1 = @distributed (+) for i = 1:n; rand(Bool); end
 
-@time nheads2 = for i = 1:200000000; Int(rand(Bool)); end
+nheads2 = 0
+@time for i = 1:n; global nheads2+=rand(Bool); end
+println(nheads2)
 
+## Show what worker thas was involved
 n = 32
 a = zeros(n);
 Threads.@threads for i = 1:n
     a[i] = Threads.threadid()
 end
-a
+println(a)
 
+# Find out number of threads
 Threads.nthreads()
 
 # Distribute workers within for loop (Experimental only!)
 
 n = Int(1e8)
-a = zeros(n);
 
+global sum = 0
 @time Threads.@threads for i = 1:n
-    a[i] = i%30
+    sum+=rand(Bool)
 end
+println(sum)
 
+sum = 0
 @time for i = 1:n
-    a[i] = i%30
+    global sum
+    sum+=rand(Bool)
 end
+println(sum)

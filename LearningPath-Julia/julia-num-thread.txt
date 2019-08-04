@@ -1,0 +1,7 @@
+    "terminal.integrated.env.linux": {
+        "JULIA_NUM_THREADS": "8",
+    },
+
+# ENV["JULIA_CPU_THREADS"] = 8
+# ENV["JULIA_NUM_THREADS"] = 8
+#

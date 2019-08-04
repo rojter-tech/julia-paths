@@ -75,4 +75,3 @@ path = glmnetcv(X, y)
 #Least Squares GLMNet Cross Validation
 #58 models for 2 predictors in 10 folds
 #Best λ 0.001 (mean loss 0.064, std 0.012)
-
