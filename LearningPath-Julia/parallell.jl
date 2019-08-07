@@ -62,18 +62,29 @@ n = Int(1e10);
 
 @time Counter.count_heads(n)
 
-##
+### RemoteChannels
 
-const jobs = Channel{Int}(32);
-const results = Channel{Tuple}(32);
+rmprocs(workers())
+addprocs(7); # add number of worker processes
 
-function count_heads(n)
-    c::Int = 0
-    for i = 1:n
-        c += rand(Bool)
-    end
-    c
-end;
+const jobs = RemoteChannel(()->Channel{Int}(32));
+const results = RemoteChannel(()->Channel{Tuple}(32));
+
+@everywhere function count_heads(n)
+            c::Int = 0
+            for i = 1:n
+                c += rand(Bool)
+            end
+            c
+        end
+
+@everywhere function do_flip_work(jobs, results, flips) # define work function everywhere
+            while true
+                job_id = take!(jobs)
+                nheads = count_heads(flips)
+                put!(results, (job_id, nheads, myid()))
+            end
+        end
 
 function make_jobs(n)
     for i in 1:n
@@ -81,23 +92,25 @@ function make_jobs(n)
     end
 end;
 
-function do_work(nc)
-    for job_id in jobs
-        nheads = count_heads(nc)
-        put!(results, (job_id, nheads))
+function execute_tasks(n, flips)
+    @async make_jobs(n); # feed the jobs channel with "n" jobs
+    for p in workers() # start tasks on the workers to process requests in parallel
+        remote_do(do_flip_work, p, jobs, results, flips)
     end
-end;
-
-n_job = 4;
-n_counts = 1e8;
-@async make_jobs(n_job);
-
-@time for i in 1:4
-    @async do_work(n_counts)
 end
 
-@elapsed    while n_job > 0
-                job_id, nheads = take!(results)
-                println("Job $job_id counts to $(round(nheads; digits=2)) heads")
-                global n_job = n_job - 1
-            end
+
+n_jobs = 10; # add number of jobs
+n_flips = 1e10
+execute_tasks(n_jobs, n_flips)
+
+# Display overall process and results
+sum = 0;
+@time while n_jobs > 0 # print out results
+    global sum
+    job_id, nheads, where = take!(results)
+    println("Job $job_id counts to $(round(nheads; digits=2)) heads on worker $where")
+    sum += nheads
+    global n_jobs -= 1
+end;
+println("The total number of heads is: $(round(sum; digits=2))");
