@@ -1,7 +1,7 @@
 ## Distributed package # works
 using Distributed
 n = Int(1e8)
-
+test = 1
 @time @sync nheads1 = @distributed (+) for i = 1:n; rand(Bool); end
 
 nheads2 = 0;
