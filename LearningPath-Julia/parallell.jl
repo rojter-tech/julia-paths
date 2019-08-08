@@ -39,10 +39,13 @@ println(sum)
 
 # Trying to map out distribution
 using Distributed
-basepath = "/home/dreuter/Github/julia-paths"
-thispath = "/LearningPath-Julia/"
-fullpath = string(basepath,thispath)
-cd(fullpath)
+addprocs(1);
+rmprocs(workers());
+n_procs = 4
+addprocs(n_procs);
+@everywhere basepath = "/home/dreuter/Github/julia-paths"
+@everywhere thispath = "/LearningPath-Julia/"
+@everywhere fullpath = string(basepath,thispath)
 @everywhere include(string("/home/dreuter/Github/julia-paths/LearningPath-Julia/","Counter.jl"))
 
 function parallel_map(n,n_par)
@@ -54,10 +57,8 @@ function parallel_map(n,n_par)
     return joblist
 end
 
-n = Int(1e10);
-@time joblist = parallel_map(n,16)
-
-## Compare with and without parallell jobs
+n = 2e10;
+joblist = parallel_map(n,n_procs);
 @time sum(map(fetch, joblist))
 
 @time Counter.count_heads(n)
@@ -105,12 +106,12 @@ n_flips = 1e10
 execute_tasks(n_jobs, n_flips)
 
 # Display overall process and results
-sum = 0;
+s = 0;
 @time while n_jobs > 0 # print out results
-    global sum
+    global s
     job_id, nheads, where = take!(results)
     println("Job $job_id counts to $(round(nheads; digits=2)) heads on worker $where")
-    sum += nheads
+    s += nheads
     global n_jobs -= 1
 end;
-println("The total number of heads is: $(round(sum; digits=2))");
+println("The total number of heads is: $(round(s; digits=2))");
