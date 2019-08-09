@@ -6,7 +6,7 @@ export count_heads
         for i = 1:n
             c += rand(Bool)
         end
-        c
+        return c
     end
 
 end
